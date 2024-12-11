@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  user-service:
+  post-service:
     container_name: post-service
     build:
       context: .
