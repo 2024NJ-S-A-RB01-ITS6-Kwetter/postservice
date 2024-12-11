@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  user-service:
+    container_name: post-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_APPLICATION_NAME: ${SPRING_APPLICATION_NAME}
+      SERVER_PORT: ${SERVER_PORT}
+      MYSQL_DATASOURCE: ${DATABASE_URL}
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI}
+      JWT_JWK_SET_URI: ${JWT_JWK_SET_URI}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    depends_on:
+      - post-service-db
+
+    networks:
+      - shared-network
+
+  post-service-db:
+    container_name: post-service-db
+    image: mysql:8
+    volumes:
+      - ./volume-data/mysql_post_service_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3308:3306"
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true

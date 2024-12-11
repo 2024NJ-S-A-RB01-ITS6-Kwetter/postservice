@@ -27,6 +27,7 @@ public class SecurityConfig {
 
         //TODO ADD CONNECTION TO AUTH SERVER/JWT TOKEN
 
+
         http.sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
