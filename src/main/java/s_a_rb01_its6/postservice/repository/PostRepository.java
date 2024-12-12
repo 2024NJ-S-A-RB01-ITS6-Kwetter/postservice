@@ -7,4 +7,6 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
     //TODO database decision.
 
+    void deleteAllByAuthorId(Long userId);
+
 }
