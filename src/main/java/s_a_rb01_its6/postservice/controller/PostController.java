@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import s_a_rb01_its6.postservice.dto.request.CreatePostRequest;
 import s_a_rb01_its6.postservice.dto.request.DeletePostRequest;
 import s_a_rb01_its6.postservice.dto.request.GetPostsRequest;
+import s_a_rb01_its6.postservice.dto.request.SearchPostRequest;
 import s_a_rb01_its6.postservice.dto.response.CreatePostResponse;
 import s_a_rb01_its6.postservice.dto.response.DeletePostResponse;
 import s_a_rb01_its6.postservice.dto.response.IndividualPost;
@@ -92,7 +93,6 @@ public class PostController {
 
 
     //delete post
-    //TODO only author or admin/moderator
     @DeleteMapping("/delete")
     public ResponseEntity<DeletePostResponse> deletePost(@RequestBody DeletePostRequest deletePostRequest) {
         // Get authentication details
@@ -115,10 +115,25 @@ public class PostController {
 
 
     //search post
+    //TODO limit visibility of posts to only friends
     @GetMapping("/search")
-    public ResponseEntity<String> searchPost(@RequestParam String query) {
+    public ResponseEntity<Map<String, Object>> searchPost(
+            @RequestParam String query,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        SearchPostRequest searchPostRequest = new SearchPostRequest(page, size, query);
+        Page<IndividualPost> posts = postService.searchPosts(searchPostRequest);
+        Map<String, Object> response = new HashMap<>();
+        response.put(CURRENT_PAGE, posts.getNumber());
+        response.put(TOTAL_PAGES, posts.getTotalPages());
+        response.put(PAGE_SIZE, posts.getSize());
+        response.put(TOTAL_ELEMENTS, posts.getTotalElements());
+        response.put(POSTS, posts.getContent());
 
-        return ResponseEntity.ok("Search post");
+        return ResponseEntity.ok(response);
+
+
     }
 
 

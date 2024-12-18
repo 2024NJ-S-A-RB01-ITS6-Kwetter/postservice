@@ -20,6 +20,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long>, PagingA
     @Query("UPDATE PostEntity p SET p.authorUsername = :newUsername WHERE p.authorId = :authorId")
     void updateAllUsernamesByAuthorId(@Param("newUsername") String newUsername, @Param("authorId") String authorId);
 
+    Page<PostEntity> findByContentContainingIgnoreCase(String query, Pageable pageable);
+
     @Query("SELECT DISTINCT p.authorId FROM PostEntity p WHERE p.authorUsername = :authorUsername")
     Optional<String> findDistinctAuthorIdByAuthorUsername(@Param("authorUsername") String authorUsername);
 

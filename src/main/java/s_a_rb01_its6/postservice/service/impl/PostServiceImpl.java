@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import s_a_rb01_its6.postservice.config.RabbitMQConfig;
 import s_a_rb01_its6.postservice.dto.request.CreatePostRequest;
 import s_a_rb01_its6.postservice.dto.request.GetPostsRequest;
+import s_a_rb01_its6.postservice.dto.request.SearchPostRequest;
 import s_a_rb01_its6.postservice.dto.response.CreatePostResponse;
 import s_a_rb01_its6.postservice.dto.response.DeletePostResponse;
 import s_a_rb01_its6.postservice.dto.response.IndividualPost;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
-    private final PostRepository postRepository;;
+    private final PostRepository postRepository;
 
     @Override
     public CreatePostResponse createPost(CreatePostRequest createPostRequest, String userId, String username) {
@@ -97,7 +98,27 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
     //search post
+    @Override
+    public Page<IndividualPost> searchPosts(SearchPostRequest searchPostRequest) {
+        // out of bound check
+        if (searchPostRequest.getPage() <= 0) {
+            throw new OutOfBoundPageException("Page number cannot be negative or zero");
+        }
 
+        // minus 1 because page starts indexing at 0
+        Pageable pageable = PageRequest.of(searchPostRequest.getPage() - 1, searchPostRequest.getSize());
+
+        Page<PostEntity> posts = postRepository.findByContentContainingIgnoreCase(
+                searchPostRequest.getQuery(),
+                pageable
+        );
+        // out of bound check
+        if (searchPostRequest.getPage() > posts.getTotalPages() && searchPostRequest.getPage() != 1) {
+            throw new OutOfBoundPageException("Page number is out of bounds");
+        }
+
+        return posts.map(PostDTOConverter::convertToIndividualPost);
+    }
 
 
     @Transactional
