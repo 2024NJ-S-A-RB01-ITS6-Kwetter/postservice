@@ -1,10 +1,7 @@
 package s_a_rb01_its6.postservice.config;
 
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -27,10 +24,13 @@ public class RabbitMQConfig {
         return rabbitTemplate;
     }
 
-    //TODO: Add the exchanges and queues for the user service
     public static final String USER_DELETE_EXCHANGE = "userDeleteExchange";
     public static final String USER_DELETE_QUEUE = "postUserDeleteQueue";
     public static final String USER_DELETE_ROUTING_KEY = "userDeleteKey";
+
+    public static final String USER_DELETE_EXCHANGE_DLQ = "userDeleteExchange.dlq";
+    public static final String USER_DELETE_QUEUE_DLQ = "postUserDeleteQueue.dlq";
+    public static final String USER_DELETE_ROUTING_KEY_DLQ = "userDeleteKey.dlq";
 
     @Bean
     public DirectExchange userDeleteExchange() {
@@ -39,11 +39,51 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue userDeleteQueue() {
-        return new Queue(USER_DELETE_QUEUE);
+        return QueueBuilder.durable(USER_DELETE_QUEUE)
+                .withArgument("x-dead-letter-exchange", USER_DELETE_EXCHANGE_DLQ) // Route to DLX on failure
+                .withArgument("x-dead-letter-routing-key", USER_DELETE_ROUTING_KEY_DLQ) // DLQ routing key
+                .withArgument("x-message-ttl", 60000) // Retry after 60 seconds
+                .build();
     }
 
     @Bean
     public Binding bindingDelete(Queue userDeleteQueue, DirectExchange userDeleteExchange) {
         return BindingBuilder.bind(userDeleteQueue).to(userDeleteExchange).with(USER_DELETE_ROUTING_KEY);
+    }
+
+    @Bean
+    public DirectExchange userDeleteExchangeDLQ() {
+        return new DirectExchange(USER_DELETE_EXCHANGE_DLQ);
+    }
+
+    // DLQ
+    @Bean
+    public Queue userDeleteQueueDLQ() {
+        return QueueBuilder.durable(USER_DELETE_QUEUE_DLQ).build();
+    }
+
+    // Binding for DLQ
+    @Bean
+    public Binding bindingDeleteDLQ(Queue userDeleteQueueDLQ, DirectExchange userDeleteExchangeDLQ) {
+        return BindingBuilder.bind(userDeleteQueueDLQ).to(userDeleteExchangeDLQ).with(USER_DELETE_ROUTING_KEY_DLQ);
+    }
+
+    public static final String USER_UPDATE_EXCHANGE = "userUpdateExchange";
+    public static final String USER_UPDATE_QUEUE = "postUserUpdateQueue";
+    public static final String USER_UPDATE_ROUTING_KEY = "userUpdateKey";
+
+    @Bean
+    public DirectExchange userUpdateExchange() {
+        return new DirectExchange(USER_UPDATE_EXCHANGE);
+    }
+
+    @Bean
+    public Queue userUpdateQueue() {
+        return new Queue(USER_UPDATE_QUEUE);
+    }
+
+    @Bean
+    public Binding bindingUpdate(Queue userUpdateQueue, DirectExchange userUpdateExchange) {
+        return BindingBuilder.bind(userUpdateQueue).to(userUpdateExchange).with(USER_UPDATE_ROUTING_KEY);
     }
 }

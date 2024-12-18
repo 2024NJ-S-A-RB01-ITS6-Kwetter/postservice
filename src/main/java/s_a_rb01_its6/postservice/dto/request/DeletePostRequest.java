@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePostRequest {
-    private String content;
+public class DeletePostRequest {
+    private Long postId;
+    private String authorId;
 
 }

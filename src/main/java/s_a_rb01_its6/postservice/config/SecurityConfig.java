@@ -16,6 +16,8 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CustomJwtAuthenticationConverter jwtAuthConverter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Disable CSRF protection
@@ -23,11 +25,13 @@ public class SecurityConfig {
 
         // Define authorization rules
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(antMatcher("**")).permitAll()  // Allow unauthenticated access to /register
                 .anyRequest().authenticated()  // All other requests require authentication
         );
 
         //TODO ADD CONNECTION TO AUTH SERVER/JWT TOKEN
+        http.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter))
+        );
 
 
         http.sessionManagement(session -> session

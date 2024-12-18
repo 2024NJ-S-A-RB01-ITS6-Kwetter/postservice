@@ -1,5 +1,4 @@
-package s_a_rb01_its6.postservice.dto.request;
-
+package s_a_rb01_its6.postservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePostRequest {
-    private String content;
-
+public class DeletePostResponse {
+    private String message;
 }
