@@ -43,11 +43,11 @@ public class PostController {
     // Create post (async)
     @PostMapping("/create")
     public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@RequestBody CreatePostRequest createPostRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaimAsString("sub");
+        String preferredUsername = authentication.getName();
         return CompletableFuture.supplyAsync(() -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Jwt jwt = (Jwt) authentication.getPrincipal();
-            String userId = jwt.getClaimAsString("sub");
-            String preferredUsername = authentication.getName();
 
             CreatePostResponse createPostResponse = postService.createPost(createPostRequest, userId, preferredUsername);
             return ResponseEntity.status(HttpStatus.CREATED).body(createPostResponse);
