@@ -47,6 +47,8 @@ dependencies {
     // MySQL Connector
     runtimeOnly 'mysql:mysql-connector-java:8.0.33'
 
+    implementation 'mysql:mysql-connector-java:8.0.33'
+
     // https://mvnrepository.com/artifact/com.h2database/h2
     testImplementation group: 'com.h2database', name: 'h2', version: '2.3.232'
 }
