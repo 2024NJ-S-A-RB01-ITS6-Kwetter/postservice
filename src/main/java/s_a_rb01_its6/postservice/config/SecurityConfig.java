@@ -3,6 +3,7 @@ package s_a_rb01_its6.postservice.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,6 +15,7 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableAsync
 public class SecurityConfig {
 
     private final CustomJwtAuthenticationConverter jwtAuthConverter;
