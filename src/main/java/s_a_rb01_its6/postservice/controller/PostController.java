@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import static s_a_rb01_its6.postservice.config.Constant.API_URL;
 
@@ -45,19 +46,28 @@ public class PostController {
 
     @PostMapping("/create")
     public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@RequestBody CreatePostRequest createPostRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); // Capture authentication in the main thread
+        // Capture the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedDataAccessException("Authentication is null. Please ensure the user is logged in.");
+        }
+
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaimAsString("sub");
         String preferredUsername = authentication.getName();
 
-        DelegatingSecurityContextExecutor securityExecutor = new DelegatingSecurityContextExecutor(Runnable::run);
+        // Use a proper executor
+        DelegatingSecurityContextExecutor securityExecutor =
+                new DelegatingSecurityContextExecutor(Executors.newSingleThreadExecutor());
 
         return CompletableFuture.supplyAsync(() -> {
+            // Business logic in async thread
             CreatePostResponse createPostResponse = postService.createPost(createPostRequest, userId, preferredUsername);
             return ResponseEntity.status(HttpStatus.CREATED).body(createPostResponse);
-        }, securityExecutor);
+        }, securityExecutor); // Use the DelegatingSecurityContextExecutor
     }
 
+    
     // Get posts feed (async)
     @GetMapping("/feed")
     public CompletableFuture<ResponseEntity<String>> getPostsFeed() {
@@ -95,8 +105,15 @@ public class PostController {
     // Delete post (async)
     @DeleteMapping("/delete")
     public CompletableFuture<ResponseEntity<DeletePostResponse>> deletePost(@RequestBody DeletePostRequest deletePostRequest) {
+        // Capture the current authentication from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Use a DelegatingSecurityContextExecutor to propagate the security context
+        DelegatingSecurityContextExecutor securityExecutor =
+                new DelegatingSecurityContextExecutor(Executors.newSingleThreadExecutor());
+
         return CompletableFuture.supplyAsync(() -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            // Access the security context in the async thread
             Jwt jwt = (Jwt) authentication.getPrincipal();
             String userId = jwt.getClaimAsString("sub");
             boolean isAdmin = authentication.getAuthorities().stream()
@@ -108,7 +125,7 @@ public class PostController {
 
             DeletePostResponse deletePostResponse = postService.deletePost(deletePostRequest.getPostId());
             return ResponseEntity.ok(deletePostResponse);
-        });
+        }, securityExecutor); // Execute the async operation with the security executor
     }
 
     // Search posts (async)
