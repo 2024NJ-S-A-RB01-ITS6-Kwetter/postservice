@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -41,17 +42,20 @@ public class PostController {
     private final PostService postService;
 
     // Create post (async)
+
     @PostMapping("/create")
     public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@RequestBody CreatePostRequest createPostRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); // Capture authentication in the main thread
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaimAsString("sub");
         String preferredUsername = authentication.getName();
-        return CompletableFuture.supplyAsync(() -> {
 
+        DelegatingSecurityContextExecutor securityExecutor = new DelegatingSecurityContextExecutor(Runnable::run);
+
+        return CompletableFuture.supplyAsync(() -> {
             CreatePostResponse createPostResponse = postService.createPost(createPostRequest, userId, preferredUsername);
             return ResponseEntity.status(HttpStatus.CREATED).body(createPostResponse);
-        });
+        }, securityExecutor);
     }
 
     // Get posts feed (async)
