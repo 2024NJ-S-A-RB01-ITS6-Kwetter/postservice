@@ -9,8 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class PostserviceApplication {
-
-
 	public static void main(String[] args) {
 		SpringApplication.run(PostserviceApplication.class, args);
 	}

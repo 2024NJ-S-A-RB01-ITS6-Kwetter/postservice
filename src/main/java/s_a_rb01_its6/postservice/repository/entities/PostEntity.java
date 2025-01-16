@@ -22,8 +22,8 @@ public class PostEntity {
 
     @Column(name = "author_username") // Map to the correct column name
     private String authorUsername;
-
-    @Column(name = "created_at") // Ensure this matches the database column
+     // Ensure this matches the database column
+    @Column(name = "created_at")
     private Date createdAt;
 
     @Column(name = "content") // Ensure this matches the database column
