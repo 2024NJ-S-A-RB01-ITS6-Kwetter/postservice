@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -46,28 +47,36 @@ public class PostController {
 
     @PostMapping("/create")
     public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@RequestBody CreatePostRequest createPostRequest) {
-        // Capture the security context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
+        // Capture the current security context
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        if (securityContext == null || securityContext.getAuthentication() == null) {
             throw new UnauthorizedDataAccessException("Authentication is null. Please ensure the user is logged in.");
         }
 
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        String userId = jwt.getClaimAsString("sub");
-        String preferredUsername = authentication.getName();
-
-        // Use a proper executor
+        // Use a proper executor with DelegatingSecurityContextExecutor
         DelegatingSecurityContextExecutor securityExecutor =
                 new DelegatingSecurityContextExecutor(Executors.newSingleThreadExecutor());
 
         return CompletableFuture.supplyAsync(() -> {
-            // Business logic in async thread
+            // Manually set the security context in the async thread
+            SecurityContextHolder.setContext(securityContext);
+
+            Authentication authentication = securityContext.getAuthentication();
+            Jwt jwt = (Jwt) authentication.getPrincipal();
+            String userId = jwt.getClaimAsString("sub");
+            String preferredUsername = authentication.getName();
+
+            // Business logic
             CreatePostResponse createPostResponse = postService.createPost(createPostRequest, userId, preferredUsername);
+
+            // Clear the context to avoid memory leaks
+            SecurityContextHolder.clearContext();
+
             return ResponseEntity.status(HttpStatus.CREATED).body(createPostResponse);
-        }, securityExecutor); // Use the DelegatingSecurityContextExecutor
+        }, securityExecutor);
     }
 
-    
+
     // Get posts feed (async)
     @GetMapping("/feed")
     public CompletableFuture<ResponseEntity<String>> getPostsFeed() {
