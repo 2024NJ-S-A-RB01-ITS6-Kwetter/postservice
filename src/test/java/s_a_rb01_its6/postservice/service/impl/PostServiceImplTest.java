@@ -9,9 +9,15 @@ class PostServiceImplTest {
     @Test
     void createPost() {
     }
+    //I can assume userID and username exist for createpost because they are gotten from the token
+
 
     @Test
     void getPost() {
+    }
+
+    @Test
+    void getPostNonExistant() {
     }
 
     @Test
@@ -19,11 +25,44 @@ class PostServiceImplTest {
     }
 
     @Test
+    void getPostsOneUserUserIDNonExistent() {
+    }
+
+    @Test
+    void getPostsPageNegative() {
+    }
+
+    @Test
+    void getPostsPageZero() {
+    }
+
+    @Test
+    void getPostsPageOutOfbounds() {
+    }
+
+
+    @Test
     void deletePost() {
     }
 
     @Test
+    void deletePostNonExistant() {
+    }
+
+    @Test
     void searchPosts() {
+    }
+
+    @Test
+    void searchPostsPageZero() {
+    }
+
+    @Test
+    void searchPostsPageNegative() {
+    }
+
+    @Test
+    void searchPostsPageOutOfBounds() {
     }
 
     @Test
