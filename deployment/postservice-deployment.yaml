@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-service
+  labels:
+    app: post-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post-service
+  template:
+    metadata:
+      labels:
+        app: post-service
+    spec:
+      containers:
+      - name: post-service
+        image: bwildeman/kwetter_post_service:latest
+        ports:
+        - containerPort: 9002
+        envFrom:
+        - configMapRef:
+            name: post-service-config
+        - secretRef:
+            name: post-service-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"

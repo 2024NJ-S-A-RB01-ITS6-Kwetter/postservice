@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: post-service-db
+spec:
+  serviceName: "post-service-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post-service-db
+  template:
+    metadata:
+      labels:
+        app: post-service-db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - configMapRef:
+            name: post-service-db-config
+        - secretRef:
+            name: post-service-db-secret
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        resources:
+          requests:
+            memory: "700Mi"
+            cpu: "100m"
+          limits:
+            memory: "800Mi"
+            cpu: "200m"
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
