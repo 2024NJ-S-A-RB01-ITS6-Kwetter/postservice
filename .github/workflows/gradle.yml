@@ -107,3 +107,30 @@ jobs:
 
       - name: Push Docker Image with Latest Tag
         run: docker push bwildeman/kwetter_post_service:latest
+        
+    
+  Deployment:
+    name: Azure deployment
+    runs-on: ubuntu-latest
+    needs: [build,test,sonarqube,docker]
+    steps:
+      - name: Install Azure CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Install Kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+      - name: Azure Login with Service Principal
+        run: az login --service-principal -u "${{secrets.AZURE_CLIENT_ID}}" -p "${{secrets.AZURE_CLIENT_SECRET}}" --tenant "${{secrets.AZURE_TENANT_ID}}"
+
+      - name: Get AKS Credentials
+        run: az aks get-credentials --resource-group individual-project_group --name individual-project --overwrite-existing
+        
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./api-gateway/deployment/
