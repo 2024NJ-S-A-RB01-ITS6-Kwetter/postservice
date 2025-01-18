@@ -130,6 +130,9 @@ jobs:
 
       - name: Get AKS Credentials
         run: az aks get-credentials --resource-group individual-project_group --name individual-project --overwrite-existing
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
         
       - name: Deploy to Kubernetes
         run: |
