@@ -52,11 +52,6 @@ public class PostController {
         if (securityContext == null || securityContext.getAuthentication() == null) {
             throw new UnauthorizedDataAccessException("Authentication is null. Please ensure the user is logged in.");
         }
-
-        System.out.println("securityContext.getAuthentication() = " + securityContext.getAuthentication());
-        System.out.println("securityContext.getAuthentication().getPrincipal() = " + securityContext.getAuthentication().getPrincipal());
-        System.out.println("securityContext.getAuthentication().getName() = " + securityContext.getAuthentication().getName());
-
         // Use a proper executor with DelegatingSecurityContextExecutor
         DelegatingSecurityContextExecutor securityExecutor =
                 new DelegatingSecurityContextExecutor(Executors.newSingleThreadExecutor());

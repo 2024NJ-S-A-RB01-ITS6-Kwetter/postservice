@@ -77,10 +77,16 @@ public class PostServiceImpl implements PostService {
                     BadWordResponse.class
             );
 
-            // Check if the content is clean
-            return response.getStatusCode().is2xxSuccessful() &&
-                    Boolean.FALSE.equals(Objects.requireNonNull(response.getBody()).getDenied());
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                // If `getDenied()` is true, it means there are bad words, so return false
+                boolean isDenied = Boolean.TRUE.equals(response.getBody().getDenied());
+                return !isDenied; // Content is allowed if not denied
+            } else {
+                System.out.println("Bad word check failed: " + response.getStatusCode());
+                return false;
+            }
         } catch (Exception e) {
+            System.out.println("Error while checking bad words: " + e.getMessage());
             return false;
         }
     }
