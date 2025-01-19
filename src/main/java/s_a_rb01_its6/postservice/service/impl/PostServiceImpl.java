@@ -24,6 +24,7 @@ import s_a_rb01_its6.postservice.event.UserUpdatedEvent;
 import s_a_rb01_its6.postservice.repository.PostRepository;
 import s_a_rb01_its6.postservice.repository.entities.PostEntity;
 import s_a_rb01_its6.postservice.service.PostService;
+import s_a_rb01_its6.postservice.service.exception.BadWordsException;
 import s_a_rb01_its6.postservice.service.exception.OutOfBoundPageException;
 import s_a_rb01_its6.postservice.service.impl.DTOConverter.PostDTOConverter;
 
@@ -48,7 +49,7 @@ public class PostServiceImpl implements PostService {
 
         // check if the content is clean
         if (!isContentAllowed(createPostRequest.getContent())) {
-            throw new IllegalArgumentException("Post contains bad words");
+            throw new BadWordsException("Post contains bad words");
         }
 
         // create post

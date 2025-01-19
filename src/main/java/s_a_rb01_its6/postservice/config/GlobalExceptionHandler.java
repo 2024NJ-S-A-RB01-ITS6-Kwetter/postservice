@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import s_a_rb01_its6.postservice.dto.response.ErrorResponse;
+import s_a_rb01_its6.postservice.service.exception.BadWordsException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -21,6 +22,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {EntityNotFoundException.class})
     public ResponseEntity<Object> handleEntityNotFoundException(final EntityNotFoundException error) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(error.getMessage())
+                .build());
+    }
+
+    @ExceptionHandler(value = {BadWordsException.class})
+    public ResponseEntity<Object> handleBadWords(final BadWordsException error) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
