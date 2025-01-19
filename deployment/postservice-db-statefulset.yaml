@@ -13,6 +13,8 @@ spec:
       labels:
         app: post-service-db
     spec:
+      nodeSelector:
+        app-pool: agentpool
       containers:
       - name: mysql
         image: mysql:8

@@ -14,6 +14,8 @@ spec:
       labels:
         app: post-service
     spec:
+      nodeSelector:
+        app-pool: agentpool
       containers:
       - name: post-service
         image: bwildeman/kwetter_post_service:latest
