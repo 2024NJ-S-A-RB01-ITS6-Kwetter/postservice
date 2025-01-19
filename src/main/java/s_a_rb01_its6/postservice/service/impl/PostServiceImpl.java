@@ -71,15 +71,15 @@ public class PostServiceImpl implements PostService {
         try {
             // Send content to Azure Function
             BadWordsRequest request = new BadWordsRequest(content);
-            ResponseEntity<BadWordResponse> response = restTemplate.postForEntity(
+            ResponseEntity<String> response = restTemplate.postForEntity(
                     badWordUrl,
                     request,
-                    BadWordResponse.class
+                    String.class // Handle the response as a plain string
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // If `getDenied()` is true, it means there are bad words, so return false
-                boolean isDenied = Boolean.TRUE.equals(response.getBody().getDenied());
+                // The response is a plain string "true" or "false"
+                boolean isDenied = Boolean.parseBoolean(response.getBody().trim());
                 return !isDenied; // Content is allowed if not denied
             } else {
                 System.out.println("Bad word check failed: " + response.getStatusCode());
@@ -90,6 +90,7 @@ public class PostServiceImpl implements PostService {
             return false;
         }
     }
+
 
 
 
