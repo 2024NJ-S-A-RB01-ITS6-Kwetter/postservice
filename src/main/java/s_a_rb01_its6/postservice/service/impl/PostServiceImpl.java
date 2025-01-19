@@ -123,10 +123,12 @@ public class PostServiceImpl implements PostService {
         //i need to get the authorid associated with the username
         Optional<String> authorID = postRepository.findDistinctAuthorIdByAuthorUsername(getPostsRequest.getUsername());
 
-        Page<PostEntity> posts = postRepository.getAllByAuthorId(
-                authorID.orElseThrow(() -> new EntityNotFoundException("User not found")),
-                pageable
-        );
+        if (authorID.isEmpty()) {
+            // If the user is not found, return an empty page
+            return Page.empty(pageable);
+        }
+
+        Page<PostEntity> posts = postRepository.getAllByAuthorId(authorID.get(), pageable);
         // out of bound check
         if (getPostsRequest.getPage() > posts.getTotalPages() && getPostsRequest.getPage() != 1) {
             throw new OutOfBoundPageException("Page number is out of bounds");
