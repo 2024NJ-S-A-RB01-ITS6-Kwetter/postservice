@@ -1,6 +1,7 @@
 package s_a_rb01_its6.postservice.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -46,7 +47,7 @@ public class PostController {
     // Create post (async)
 
     @PostMapping("/create")
-    public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@RequestBody CreatePostRequest createPostRequest) {
+    public CompletableFuture<ResponseEntity<CreatePostResponse>> createPost(@Valid @RequestBody CreatePostRequest createPostRequest) {
         // Capture the current security context
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext == null || securityContext.getAuthentication() == null) {
