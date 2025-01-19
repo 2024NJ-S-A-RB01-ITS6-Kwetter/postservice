@@ -1,5 +1,6 @@
 package s_a_rb01_its6.postservice.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -67,6 +68,7 @@ public class PostServiceImpl implements PostService {
     }
 
 
+
     private boolean isContentAllowed(String content) {
         try {
             // Send content to Azure Function
@@ -74,13 +76,16 @@ public class PostServiceImpl implements PostService {
             ResponseEntity<String> response = restTemplate.postForEntity(
                     badWordUrl,
                     request,
-                    String.class // Handle the response as a plain string
+                    String.class // Handle the response as a JSON string
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // The response is a plain string "true" or "false"
-                boolean isDenied = Boolean.parseBoolean(response.getBody().trim());
-                return !isDenied; // Content is allowed if not denied
+                // Parse the JSON response
+                ObjectMapper objectMapper = new ObjectMapper();
+                BadWordResponse badWordResponse = objectMapper.readValue(response.getBody(), BadWordResponse.class);
+
+                // If `containsBadWords` is true, the content is denied
+                return !Boolean.TRUE.equals(badWordResponse.getDenied());
             } else {
                 System.out.println("Bad word check failed: " + response.getStatusCode());
                 return false;

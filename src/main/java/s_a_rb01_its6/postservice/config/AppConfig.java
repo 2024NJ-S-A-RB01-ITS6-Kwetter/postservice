@@ -16,7 +16,6 @@ public class AppConfig {
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         // Customize the RestTemplate
         return builder
-                .additionalMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8))
                 .build();
     }
 }
