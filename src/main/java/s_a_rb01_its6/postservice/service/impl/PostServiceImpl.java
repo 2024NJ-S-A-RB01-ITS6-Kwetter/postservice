@@ -3,15 +3,20 @@ package s_a_rb01_its6.postservice.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import s_a_rb01_its6.postservice.config.RabbitMQConfig;
+import s_a_rb01_its6.postservice.dto.request.BadWordsRequest;
 import s_a_rb01_its6.postservice.dto.request.CreatePostRequest;
 import s_a_rb01_its6.postservice.dto.request.GetPostsRequest;
 import s_a_rb01_its6.postservice.dto.request.SearchPostRequest;
+import s_a_rb01_its6.postservice.dto.response.BadWordResponse;
 import s_a_rb01_its6.postservice.dto.response.CreatePostResponse;
 import s_a_rb01_its6.postservice.dto.response.DeletePostResponse;
 import s_a_rb01_its6.postservice.dto.response.IndividualPost;
@@ -24,6 +29,7 @@ import s_a_rb01_its6.postservice.service.impl.DTOConverter.PostDTOConverter;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -31,10 +37,19 @@ import java.util.Optional;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${azure.function.url}")
+    private String badWordUrl;
 
     @Override
     public CreatePostResponse createPost(CreatePostRequest createPostRequest, String userId, String username) {
         //check if there are any user mentions in the post content
+
+        // check if the content is clean
+        if (!isContentAllowed(createPostRequest.getContent())) {
+            throw new IllegalArgumentException("Post contains bad words");
+        }
 
         // create post
         Instant now = Instant.now();
@@ -49,6 +64,27 @@ public class PostServiceImpl implements PostService {
                 .message("Post created successfully")
                 .build();
     }
+
+
+    private boolean isContentAllowed(String content) {
+        try {
+            // Send content to Azure Function
+            BadWordsRequest request = new BadWordsRequest(content);
+            ResponseEntity<BadWordResponse> response = restTemplate.postForEntity(
+                    badWordUrl,
+                    request,
+                    BadWordResponse.class
+            );
+
+            // Check if the content is clean
+            return response.getStatusCode().is2xxSuccessful() &&
+                    Boolean.FALSE.equals(Objects.requireNonNull(response.getBody()).getDenied());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
 
     //get post by id
     @Override

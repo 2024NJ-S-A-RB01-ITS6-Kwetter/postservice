@@ -9,3 +9,4 @@ data:
   JWT_JWK_SET_URI: "http://172.205.16.15/realms/kwetter/protocol/openid-connect/certs"
   RABBITMQ_HOST: "rabbitmq"
   RABBITMQ_PORT: "5672"
+  AZURE_FUNCTION_URL: "https://Kwetter-BadWordChecker.azurewebsites.net/api/CheckBadWords"
