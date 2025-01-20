@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,30 +113,38 @@ public class PostServiceImpl implements PostService {
     //get posts on user profile
     @Override
     public Page<IndividualPost> getPostsOneUser(GetPostsRequest getPostsRequest) {
-        // out of bound check
+        // Out of bounds check
         if (getPostsRequest.getPage() <= 0) {
             throw new OutOfBoundPageException("Page number cannot be negative or zero");
         }
 
-        // minus 1 because page starts indexing at 0
-        Pageable pageable = PageRequest.of(getPostsRequest.getPage() - 1, getPostsRequest.getSize());
+        // Create pageable with sort by date descending
+        Pageable pageable = PageRequest.of(
+                getPostsRequest.getPage() - 1,
+                getPostsRequest.getSize(),
+                Sort.by(Sort.Direction.DESC, "created_at") // Replace "createdDate" with your actual date field
+        );
 
-        //i need to get the authorid associated with the username
+        // Get the author ID associated with the username
         Optional<String> authorID = postRepository.findDistinctAuthorIdByAuthorUsername(getPostsRequest.getUsername());
-
         if (authorID.isEmpty()) {
             // If the user is not found, return an empty page
             return Page.empty(pageable);
         }
 
+        // Retrieve posts for the author ID
         Page<PostEntity> posts = postRepository.getAllByAuthorId(authorID.get(), pageable);
-        // out of bound check
+
+        // Out of bounds check
         if (getPostsRequest.getPage() > posts.getTotalPages() && getPostsRequest.getPage() != 1) {
             throw new OutOfBoundPageException("Page number is out of bounds");
         }
 
+        // Convert to the required DTO format
         return posts.map(PostDTOConverter::convertToIndividualPost);
     }
+
+
     //delete post
     @Override
     public DeletePostResponse deletePost(Long postId) {
