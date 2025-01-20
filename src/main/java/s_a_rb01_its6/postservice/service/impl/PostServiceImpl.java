@@ -122,7 +122,7 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(
                 getPostsRequest.getPage() - 1,
                 getPostsRequest.getSize(),
-                Sort.by(Sort.Direction.DESC, "created_at") // Replace "createdDate" with your actual date field
+                Sort.by(Sort.Direction.DESC, "createdAt") // Replace "createdDate" with your actual date field
         );
 
         // Get the author ID associated with the username
