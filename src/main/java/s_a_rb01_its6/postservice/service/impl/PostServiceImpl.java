@@ -47,14 +47,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public CreatePostResponse createPost(CreatePostRequest createPostRequest, String userId, String username) {
-        //check if there are any user mentions in the post content
-
-        // check if the content is clean
+        // Check if the content contains user mentions or bad words
         if (!isContentAllowed(createPostRequest.getContent())) {
             throw new BadWordsException("Post contains bad words");
         }
 
-        // create post
+        // Create the post entity
         Instant now = Instant.now();
         PostEntity postEntity = PostEntity.builder()
                 .authorId(userId)
@@ -62,8 +60,13 @@ public class PostServiceImpl implements PostService {
                 .content(createPostRequest.getContent())
                 .createdAt(Date.from(now))
                 .build();
-        postRepository.save(postEntity);
+
+        // Save the post entity and get the saved entity (including generated ID)
+        PostEntity savedPostEntity = postRepository.save(postEntity);
+
+        // Return the response with the ID of the created post
         return CreatePostResponse.builder()
+                .id(savedPostEntity.getId()) // Include the generated ID
                 .message("Post created successfully")
                 .build();
     }
